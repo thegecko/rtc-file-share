@@ -24,7 +24,11 @@ function App() {
   const fileReader = useRef<FileReader | null>(null)
   const receivedBuffer = useRef<ArrayBuffer[]>([])
 
-  const CHUNK_SIZE = 16384 // 16KB chunks
+  // WebRTC configuration constants
+  // 16KB chunks - optimal size for WebRTC data channels to balance throughput and reliability
+  const CHUNK_SIZE = 16384
+  // Timeout to display offer/answer even if ICE gathering is slow
+  const ICE_GATHERING_TIMEOUT = 2000
 
   useEffect(() => {
     return () => {
@@ -45,7 +49,8 @@ function App() {
     const pc = new RTCPeerConnection(configuration)
 
     pc.onicecandidate = () => {
-      // Update offer/answer whenever we have a new candidate or when gathering is complete
+      // Update offer/answer with new ICE candidates as they are gathered
+      // This ensures the SDP includes all candidates for optimal connectivity
       if (isInitiator) {
         const offer = pc.localDescription
         if (offer) {
@@ -150,7 +155,7 @@ function App() {
       if (currentOffer) {
         setLocalOffer(JSON.stringify(currentOffer))
       }
-    }, 2000) // Show offer after 2 seconds regardless of ICE gathering state
+    }, ICE_GATHERING_TIMEOUT)
   }
 
   const startAsReceiver = () => {
@@ -175,7 +180,7 @@ function App() {
         if (currentAnswer) {
           setLocalAnswer(JSON.stringify(currentAnswer))
         }
-      }, 2000) // Show answer after 2 seconds regardless of ICE gathering state
+      }, ICE_GATHERING_TIMEOUT)
     } catch (error) {
       console.error('Error processing offer:', error)
     }
