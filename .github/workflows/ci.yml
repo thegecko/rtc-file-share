@@ -22,4 +22,4 @@ jobs:
         with:
           node-version: 20.x
       - name: Build
-        run: npm install
+        run: npm install --no-package-lock
