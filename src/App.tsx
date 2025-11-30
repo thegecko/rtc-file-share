@@ -2,7 +2,7 @@ import { usePeerJS } from './hooks/usePeerJS';
 import ConnectionPanel from './components/ConnectionPanel';
 import FileTransfer from './components/FileTransfer';
 
-function App() {
+function App(): JSX.Element {
     const {
         peerId,
         connections,

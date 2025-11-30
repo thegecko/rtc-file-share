@@ -1,23 +1,36 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { ConnectionStatus } from '../hooks/usePeerJS';
 
-export default function ConnectionPanel({ peerId, connections, status, onConnect }) {
-    const [remotePeerId, setRemotePeerId] = useState('');
+interface ConnectionPanelProps {
+    peerId: string | null;
+    connections: string[];
+    status: ConnectionStatus;
+    onConnect: (peerId: string) => void;
+}
 
-    const handleConnect = () => {
+export default function ConnectionPanel({
+    peerId,
+    connections,
+    status,
+    onConnect
+}: ConnectionPanelProps): JSX.Element {
+    const [remotePeerId, setRemotePeerId] = useState<string>('');
+
+    const handleConnect = (): void => {
         if (remotePeerId.trim()) {
             onConnect(remotePeerId.trim());
             setRemotePeerId('');
         }
     };
 
-    const getStatusText = () => {
+    const getStatusText = (): string => {
         if (status === 'disconnected') return 'Disconnected';
         if (status === 'connecting') return 'Connecting...';
         if (status === 'connected') return `Connected (${connections.length})`;
         return 'Unknown';
     };
 
-    const getStatusClass = () => {
+    const getStatusClass = (): string => {
         return `status ${status}`;
     };
 
@@ -44,9 +57,9 @@ export default function ConnectionPanel({ peerId, connections, status, onConnect
                     <input
                         type="text"
                         value={remotePeerId}
-                        onChange={(e) => setRemotePeerId(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRemotePeerId(e.target.value)}
                         placeholder="Enter remote peer ID"
-                        onKeyPress={(e) => e.key === 'Enter' && handleConnect()}
+                        onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleConnect()}
                         disabled={!peerId}
                     />
                     <button
@@ -64,7 +77,7 @@ export default function ConnectionPanel({ peerId, connections, status, onConnect
                 <div>
                     <h3>Active Connections</h3>
                     <div className="connection-list">
-                        {connections.map((connPeerId) => (
+                        {connections.map((connPeerId: string) => (
                             <div key={connPeerId} className="connection-item">
                                 <span className="connection-peer">{connPeerId}</span>
                                 <span className="status connected">

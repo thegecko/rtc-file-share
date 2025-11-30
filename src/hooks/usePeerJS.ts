@@ -1,16 +1,51 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import Peer from 'peerjs';
+import Peer, { DataConnection } from 'peerjs';
 import { downloadFile, generatePeerId } from '../utils/fileUtils';
 
-export function usePeerJS() {
-    const [peerId, setPeerId] = useState(null);
-    const [peer, setPeer] = useState(null);
-    const [connections, setConnections] = useState([]);
-    const [status, setStatus] = useState('disconnected');
-    const [receivedFiles, setReceivedFiles] = useState([]);
+// Custom type for file with name property
+interface FileWithName extends Blob {
+    name?: string;
+}
 
-    const peerRef = useRef(null);
-    const connectionsRef = useRef(new Map());
+// File metadata type
+interface FileMetadata {
+    type: 'file-metadata';
+    name: string;
+    size: number;
+    mimeType: string;
+}
+
+// Received file type
+export interface ReceivedFile {
+    name: string;
+    size: number;
+    timestamp: Date;
+}
+
+// Connection status type
+export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
+
+// Hook return type
+export interface UsePeerJSReturn {
+    peerId: string | null;
+    peer: Peer | null;
+    connections: string[];
+    status: ConnectionStatus;
+    receivedFiles: ReceivedFile[];
+    connectToPeer: (remotePeerId: string) => void;
+    sendFile: (file: File) => boolean;
+    sendFileToPeer: (file: File, remotePeerId: string) => boolean;
+}
+
+export function usePeerJS(): UsePeerJSReturn {
+    const [peerId, setPeerId] = useState<string | null>(null);
+    const [peer, setPeer] = useState<Peer | null>(null);
+    const [connections, setConnections] = useState<string[]>([]);
+    const [status, setStatus] = useState<ConnectionStatus>('disconnected');
+    const [receivedFiles, setReceivedFiles] = useState<ReceivedFile[]>([]);
+
+    const peerRef = useRef<Peer | null>(null);
+    const connectionsRef = useRef<Map<string, DataConnection>>(new Map());
 
     // Initialize peer on mount
     useEffect(() => {
@@ -20,7 +55,7 @@ export function usePeerJS() {
             debug: 2,
         });
 
-        newPeer.on('open', (id) => {
+        newPeer.on('open', (id: string) => {
             console.log('Peer opened with ID:', id);
             setPeerId(id);
             setStatus('disconnected');
@@ -28,12 +63,12 @@ export function usePeerJS() {
             setPeer(newPeer);
         });
 
-        newPeer.on('connection', (conn) => {
+        newPeer.on('connection', (conn: DataConnection) => {
             console.log('Incoming connection from:', conn.peer);
             handleConnection(conn);
         });
 
-        newPeer.on('error', (err) => {
+        newPeer.on('error', (err: Error) => {
             console.error('Peer error:', err);
             setStatus('error');
         });
@@ -46,7 +81,7 @@ export function usePeerJS() {
     }, []);
 
     // Handle incoming and outgoing connections
-    const handleConnection = useCallback((conn) => {
+    const handleConnection = useCallback((conn: DataConnection) => {
         conn.on('open', () => {
             console.log('Connection opened with:', conn.peer);
             connectionsRef.current.set(conn.peer, conn);
@@ -54,13 +89,14 @@ export function usePeerJS() {
             setStatus('connected');
         });
 
-        conn.on('data', (data) => {
+        conn.on('data', (data: unknown) => {
             console.log('Received data:', data);
 
             // Check if it's a file (Blob)
             if (data instanceof Blob) {
                 // Extract filename from metadata if available
-                const filename = data.name || `file-${Date.now()}`;
+                const fileBlob = data as FileWithName;
+                const filename = fileBlob.name || `file-${Date.now()}`;
 
                 // Auto-download the file
                 downloadFile(data, filename);
@@ -71,9 +107,12 @@ export function usePeerJS() {
                     size: data.size,
                     timestamp: new Date(),
                 }]);
-            } else if (data.type === 'file-metadata') {
-                // Handle file metadata separately if needed
-                console.log('File metadata:', data);
+            } else if (typeof data === 'object' && data !== null && 'type' in data) {
+                const metadata = data as FileMetadata;
+                if (metadata.type === 'file-metadata') {
+                    // Handle file metadata separately if needed
+                    console.log('File metadata:', metadata);
+                }
             }
         });
 
@@ -87,7 +126,7 @@ export function usePeerJS() {
             }
         });
 
-        conn.on('error', (err) => {
+        conn.on('error', (err: Error) => {
             console.error('Connection error:', err);
         });
     }, []);
@@ -99,7 +138,7 @@ export function usePeerJS() {
     };
 
     // Connect to a remote peer
-    const connectToPeer = useCallback((remotePeerId) => {
+    const connectToPeer = useCallback((remotePeerId: string): void => {
         if (!peerRef.current) {
             console.error('Peer not initialized');
             return;
@@ -119,26 +158,27 @@ export function usePeerJS() {
     }, [handleConnection]);
 
     // Send a file to all connected peers
-    const sendFile = useCallback((file) => {
+    const sendFile = useCallback((file: File): boolean => {
         if (connectionsRef.current.size === 0) {
             console.error('No peers connected');
             return false;
         }
 
         // Create a new Blob with filename metadata
-        const fileBlob = new Blob([file], { type: file.type });
+        const fileBlob = new Blob([file], { type: file.type }) as FileWithName;
         fileBlob.name = file.name;
 
         connectionsRef.current.forEach((conn) => {
             console.log('Sending file to:', conn.peer);
 
             // Send file metadata first
-            conn.send({
+            const metadata: FileMetadata = {
                 type: 'file-metadata',
                 name: file.name,
                 size: file.size,
                 mimeType: file.type,
-            });
+            };
+            conn.send(metadata);
 
             // Then send the actual file
             conn.send(fileBlob);
@@ -148,7 +188,7 @@ export function usePeerJS() {
     }, []);
 
     // Send file to a specific peer
-    const sendFileToPeer = useCallback((file, remotePeerId) => {
+    const sendFileToPeer = useCallback((file: File, remotePeerId: string): boolean => {
         const conn = connectionsRef.current.get(remotePeerId);
 
         if (!conn) {
@@ -156,16 +196,17 @@ export function usePeerJS() {
             return false;
         }
 
-        const fileBlob = new Blob([file], { type: file.type });
+        const fileBlob = new Blob([file], { type: file.type }) as FileWithName;
         fileBlob.name = file.name;
 
         // Send file metadata
-        conn.send({
+        const metadata: FileMetadata = {
             type: 'file-metadata',
             name: file.name,
             size: file.size,
             mimeType: file.type,
-        });
+        };
+        conn.send(metadata);
 
         // Send the file
         conn.send(fileBlob);

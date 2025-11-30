@@ -1,7 +1,7 @@
 /**
  * Format file size in human-readable format
  */
-export function formatFileSize(bytes) {
+export function formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
 
     const k = 1024;
@@ -14,7 +14,7 @@ export function formatFileSize(bytes) {
 /**
  * Trigger browser download of a file
  */
-export function downloadFile(file, filename) {
+export function downloadFile(file: Blob, filename: string): void {
     const url = URL.createObjectURL(file);
     const a = document.createElement('a');
     a.href = url;
@@ -28,6 +28,6 @@ export function downloadFile(file, filename) {
 /**
  * Generate a random peer ID
  */
-export function generatePeerId() {
+export function generatePeerId(): string {
     return Math.random().toString(36).substring(2, 10);
 }

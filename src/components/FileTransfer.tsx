@@ -1,16 +1,29 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { formatFileSize } from '../utils/fileUtils';
+import { ReceivedFile } from '../hooks/usePeerJS';
 
-export default function FileTransfer({ connections, receivedFiles, onSendFile }) {
-    const [selectedFile, setSelectedFile] = useState(null);
-    const [sending, setSending] = useState(false);
+interface FileTransferProps {
+    connections: string[];
+    receivedFiles: ReceivedFile[];
+    onSendFile: (file: File) => boolean;
+}
 
-    const handleFileSelect = (e) => {
-        const file = e.target.files[0];
-        setSelectedFile(file);
+export default function FileTransfer({
+    connections,
+    receivedFiles,
+    onSendFile
+}: FileTransferProps): JSX.Element {
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [sending, setSending] = useState<boolean>(false);
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setSelectedFile(file);
+        }
     };
 
-    const handleSendFile = async () => {
+    const handleSendFile = async (): Promise<void> => {
         if (!selectedFile) return;
 
         setSending(true);
@@ -21,7 +34,10 @@ export default function FileTransfer({ connections, receivedFiles, onSendFile })
             if (success) {
                 setSelectedFile(null);
                 // Reset file input
-                document.querySelector('input[type="file"]').value = '';
+                const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
+                if (fileInput) {
+                    fileInput.value = '';
+                }
             }
         }, 500);
     };
@@ -66,7 +82,7 @@ export default function FileTransfer({ connections, receivedFiles, onSendFile })
                 <div style={{ marginTop: '2rem' }}>
                     <h3>Received Files</h3>
                     <div className="file-list">
-                        {receivedFiles.map((file, index) => (
+                        {receivedFiles.map((file: ReceivedFile, index: number) => (
                             <div key={index} className="file-item">
                                 <div className="file-header">
                                     <span className="file-name">{file.name}</span>
