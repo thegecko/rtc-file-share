@@ -5,8 +5,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "prepare": "npm run build",
+    "clean": "git clean -f -x ./node_modules ./dist",
     "build": "vite build",
+    "dev": "vite",
     "preview": "vite preview",
     "test": "echo \"No tests specified\" && exit 0",
     "predeploy": "npm run build",
