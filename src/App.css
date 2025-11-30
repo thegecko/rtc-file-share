@@ -1,0 +1,240 @@
+.container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.card {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+  color: #667eea;
+  margin-bottom: 10px;
+  font-size: 2.5rem;
+  text-align: center;
+}
+
+.subtitle {
+  text-align: center;
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 1.1rem;
+}
+
+.status {
+  text-align: center;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  font-weight: 600;
+}
+
+.status-not-connected {
+  color: #999;
+}
+
+.status-connecting {
+  color: #f59e0b;
+}
+
+.status-connected {
+  color: #10b981;
+}
+
+.status-disconnected,
+.status-failed {
+  color: #ef4444;
+}
+
+.section {
+  margin-bottom: 30px;
+}
+
+h2 {
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 10px;
+}
+
+.button-group {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.button-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.button-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.button-success {
+  background: #10b981;
+  color: white;
+}
+
+.button-small {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+}
+
+.button-reset {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.input-field,
+.code-block {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: 'Courier New', monospace;
+  resize: vertical;
+  margin-bottom: 15px;
+  background: #f9fafb;
+}
+
+.input-field:focus,
+.code-block:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.code-block-container {
+  margin-bottom: 20px;
+}
+
+.code-block {
+  margin-bottom: 10px;
+  background: #f3f4f6;
+}
+
+.file-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-label {
+  padding: 12px 24px;
+  background: #f3f4f6;
+  border: 2px dashed #667eea;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  color: #667eea;
+  text-align: center;
+  min-width: 250px;
+}
+
+.file-label:hover {
+  background: #e5e7eb;
+  border-color: #764ba2;
+}
+
+.progress-container {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 30px;
+  background: #e5e7eb;
+  border-radius: 15px;
+  overflow: hidden;
+  margin: 15px 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.3s ease;
+  border-radius: 15px;
+}
+
+.progress-text {
+  text-align: center;
+  color: #666;
+  font-weight: 600;
+}
+
+.received-file {
+  padding: 20px;
+  background: #f0fdf4;
+  border: 2px solid #10b981;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.received-file p {
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #065f46;
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .button {
+    width: 100%;
+  }
+}
