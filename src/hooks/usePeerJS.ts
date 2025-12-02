@@ -126,8 +126,22 @@ export function usePeerJS(): UsePeerJSReturn {
 
         conn.on('data', (data: unknown) => {
             console.log('Received data:', data);
+            console.log('Data type:', typeof data);
+            console.log('Is Blob:', data instanceof Blob);
+            console.log('Is ArrayBuffer:', data instanceof ArrayBuffer);
+            console.log('Constructor:', data?.constructor?.name);
 
-            // Check if it's a file (Blob)
+            // Check if it's file metadata first
+            if (typeof data === 'object' && data !== null && 'type' in data) {
+                const metadata = data as FileMetadata;
+                if (metadata.type === 'file-metadata') {
+                    // Handle file metadata separately if needed
+                    console.log('File metadata:', metadata);
+                    return;
+                }
+            }
+
+            // Check if it's a file (Blob or ArrayBuffer)
             if (data instanceof Blob) {
                 // Extract filename from metadata if available
                 const fileBlob = data as FileWithName;
@@ -142,12 +156,31 @@ export function usePeerJS(): UsePeerJSReturn {
                     size: data.size,
                     timestamp: new Date(),
                 }]);
-            } else if (typeof data === 'object' && data !== null && 'type' in data) {
-                const metadata = data as FileMetadata;
-                if (metadata.type === 'file-metadata') {
-                    // Handle file metadata separately if needed
-                    console.log('File metadata:', metadata);
-                }
+            } else if (data instanceof ArrayBuffer) {
+                // Handle ArrayBuffer (PeerJS might send files as ArrayBuffer)
+                const blob = new Blob([data]);
+                const filename = `file-${Date.now()}`;
+                
+                downloadFile(blob, filename);
+                
+                setReceivedFiles(prev => [...prev, {
+                    name: filename,
+                    size: blob.size,
+                    timestamp: new Date(),
+                }]);
+            } else if (data?.constructor?.name === 'Uint8Array') {
+                const blob = new Blob([data as BlobPart]);
+                const filename = `file-${Date.now()}`;
+                
+                downloadFile(blob, filename);
+                
+                setReceivedFiles(prev => [...prev, {
+                    name: filename,
+                    size: blob.size,
+                    timestamp: new Date(),
+                }]);
+            } else {
+                console.warn('Received unknown data type:', data);
             }
         });
 
