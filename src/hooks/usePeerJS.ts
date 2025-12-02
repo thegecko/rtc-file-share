@@ -46,13 +46,26 @@ export function usePeerJS(): UsePeerJSReturn {
 
     const peerRef = useRef<Peer | null>(null);
     const connectionsRef = useRef<Map<string, DataConnection>>(new Map());
+    const isInitialized = useRef(false);
 
     // Initialize peer on mount
     useEffect(() => {
+        // Prevent double initialization in React StrictMode
+        if (isInitialized.current) {
+            return;
+        }
+        isInitialized.current = true;
+
         const id = generatePeerId();
 
         const newPeer = new Peer(id, {
             debug: 2,
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:global.stun.twilio.com:3478' }
+                ]
+            }
         });
 
         newPeer.on('open', (id: string) => {
@@ -65,6 +78,23 @@ export function usePeerJS(): UsePeerJSReturn {
 
         newPeer.on('connection', (conn: DataConnection) => {
             console.log('Incoming connection from:', conn.peer);
+            
+            // Check if we already have a connection with this peer
+            const existingConn = connectionsRef.current.get(conn.peer);
+            if (existingConn) {
+                // If both peers connect simultaneously, keep the connection from the peer with the smaller ID
+                // This ensures both peers make the same decision
+                if (id < conn.peer) {
+                    console.log('Already connected to:', conn.peer, '- keeping our outgoing connection');
+                    conn.close();
+                    return;
+                } else {
+                    console.log('Already connected to:', conn.peer, '- replacing with incoming connection');
+                    existingConn.close();
+                    connectionsRef.current.delete(conn.peer);
+                }
+            }
+            
             handleConnection(conn);
         });
 
@@ -74,14 +104,19 @@ export function usePeerJS(): UsePeerJSReturn {
         });
 
         return () => {
-            // Cleanup
-            connectionsRef.current.forEach(conn => conn.close());
-            newPeer.destroy();
+            // Only cleanup if we're actually unmounting (not just StrictMode re-running)
+            if (isInitialized.current) {
+                console.log('Cleaning up peer connection');
+                connectionsRef.current.forEach(conn => conn.close());
+                newPeer.destroy();
+                isInitialized.current = false;
+            }
         };
     }, []);
 
     // Handle incoming and outgoing connections
     const handleConnection = useCallback((conn: DataConnection) => {
+        // Set up event handlers before the connection opens
         conn.on('open', () => {
             console.log('Connection opened with:', conn.peer);
             connectionsRef.current.set(conn.peer, conn);
@@ -128,6 +163,7 @@ export function usePeerJS(): UsePeerJSReturn {
 
         conn.on('error', (err: Error) => {
             console.error('Connection error:', err);
+            setStatus('error');
         });
     }, []);
 
@@ -149,13 +185,19 @@ export function usePeerJS(): UsePeerJSReturn {
             return;
         }
 
+        // Prevent connecting to yourself
+        if (remotePeerId === peerId) {
+            console.error('Cannot connect to yourself');
+            return;
+        }
+
         setStatus('connecting');
         const conn = peerRef.current.connect(remotePeerId, {
             reliable: true,
         });
 
         handleConnection(conn);
-    }, [handleConnection]);
+    }, [handleConnection, peerId]);
 
     // Send a file to all connected peers
     const sendFile = useCallback((file: File): boolean => {
