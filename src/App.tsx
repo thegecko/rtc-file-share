@@ -1,4 +1,4 @@
-import { usePeerJS } from './hooks/usePeerJS';
+import { useWebRTC } from './hooks/useWebRTC';
 import ConnectionPanel from './components/ConnectionPanel';
 import FileTransfer from './components/FileTransfer';
 
@@ -10,7 +10,7 @@ function App(): JSX.Element {
         receivedFiles,
         connectToPeer,
         sendFile,
-    } = usePeerJS();
+    } = useWebRTC();
 
     return (
         <div>
@@ -42,7 +42,7 @@ function App(): JSX.Element {
                 fontSize: '0.875rem',
                 marginTop: '2rem'
             }}>
-                <p>Built with React, Vite, and PeerJS • Powered by WebRTC</p>
+                <p>Built with React, Vite, and WebRTC • Custom Signaling Server</p>
                 <p style={{ marginTop: '0.5rem' }}>
                     Share your Peer ID with others to establish a connection
                 </p>

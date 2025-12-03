@@ -8,14 +8,15 @@
     "prepare": "npm run build",
     "clean": "git clean -f -x ./node_modules ./dist",
     "build": "vite build",
-    "dev": "vite",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "vite",
+    "dev:server": "cd server && npm install && npm start",
     "preview": "vite preview",
     "test": "echo \"No tests specified\" && exit 0",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "peerjs": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -23,6 +24,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^9.1.0",
     "gh-pages": "^6.3.0",
     "typescript": "^5.5.3",
     "vite": "^5.4.2"

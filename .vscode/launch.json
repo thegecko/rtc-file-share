@@ -7,6 +7,28 @@
             "type": "chrome",
             "url": "http://localhost:5173/rtc-file-share/",
             "webRoot": "${workspaceFolder}"
+        },
+        {
+            "name": "Launch Signaling Server",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/server",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "start"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Launch Full App (Server + Client)",
+            "configurations": [
+                "Launch Signaling Server",
+                "Launch Chrome"
+            ],
+            "stopAll": true
         }
     ]
 }
